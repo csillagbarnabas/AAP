@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1551214403 source:c:\users\felhasználó\desktop\4. félév\c++\newtons_method\main.cpp
+	<iostream>
+	<math.h>
+	<stdlib.h>
+
