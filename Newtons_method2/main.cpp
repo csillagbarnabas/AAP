@@ -4,10 +4,10 @@
 template<typename T, typename F, typename G, typename E>
 void nmethod(T xf, F dxf, G x0, E n){
     std::cout.precision(16);
-    G dx = -xf(x0)/dxf(x0);
+    G dx = 0.0;
     do{
-        x0 += dx;
         dx = -xf(x0)/dxf(x0);
+        x0 += dx;
     }while(std::abs(dx) > n);
     std::cout << "The solution:" << x0 <<"\n";
 }
@@ -20,10 +20,7 @@ int main(){
     std::cout << "Wolframalpha: +/- 24.7386337537060"<<"\n";
     if (n <= 0){
         std::cout << "Error: n must be bigger than zero. So now we are going to use the absulute value of n."<<"\n";
-        double n1 = std::abs(n);
-        nmethod([](double x){ return x*x - 612.0; },[](double x){ return 2.0*x; }, x0, n1);
-        return 0;
-
+        n = std::abs(n);
     }
     nmethod([](double x){ return x*x - 612.0; },[](double x){ return 2.0*x; }, x0, n);
     return 0;
