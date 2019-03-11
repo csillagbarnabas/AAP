@@ -24,8 +24,8 @@ auto b(vector<double> const& x, vector<double> const& y){
         array<double, 2> E = {0.0,yv};
         return E;  
     }
-    auto b = sum / xsum2;
-    auto m = yv - b * xv;
+    const auto b = sum / xsum2;
+    const auto m = yv - b * xv;
     array<double, 2> E = {b,m};
     return E;
 }
