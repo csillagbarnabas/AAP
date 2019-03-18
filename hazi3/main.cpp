@@ -5,6 +5,11 @@
 
 using namespace std;
 
+template<typename T>
+T sq(T a){
+    return a*a;
+}
+
 auto lregression(vector<double> const& x, vector<double> const& y){
     const int n = static_cast<int>(x.size());
     const auto xv0 = accumulate(x.begin(), x.end(), 0.0);
@@ -12,22 +17,19 @@ auto lregression(vector<double> const& x, vector<double> const& y){
     const auto xv = xv0 / n;
     const auto yv = yv0 / n;
     const auto l = [xv](double a,double b){
-        const int n = 2;
-        return a + pow((b-xv), n);
+        return a + sq(b-xv);
     };
-    auto sum = (x[0] - xv)*(y[0] - yv);
-    for (int i = 1; i < n;i++){
-        sum += (x[i] - xv)*( y[i] - yv);
-    }
+    const auto g = [xv,yv](double a,double b){
+        return (a-xv) * (b-yv);
+    };
+    const auto sum = inner_product(x.begin(), x.end(), y.begin(), 0.0, plus<>(), g);
     const auto xsum2 = accumulate(x.begin(), x.end(),0.0, l);
     if (xsum2 == 0.0){
-        array<double, 2> E = {0.0,yv};
-        return E;  
+        return array<double, 2> {0.0,yv};
     }
     const auto b = sum / xsum2;
     const auto m = yv - b * xv;
-    array<double, 2> E = {b,m};
-    return E;
+    return array<double, 2> {b,m};
 }
 
 int main(int, char**) {
