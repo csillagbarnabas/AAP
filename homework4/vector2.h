@@ -1,3 +1,4 @@
+#include <cmath>
 template<typename T>
 struct Vector2{
     T x, y;
@@ -50,4 +51,24 @@ std::istream& operator>>( std::istream& i, Vector2<T> const& v )
 i >> v.x;
 i >> v.y;
 return i;
+}
+template<typename T>
+T sq(T x){
+    return x*x;
+}
+template<typename T, typename F>
+T dot(Vector2<T> const& u, Vector2<F> const& v){
+    return u.x * v.x + u.y * v.y;
+}
+template<typename T>
+T sqlength(Vector2<T> const& v){
+    return sq(v.x)+sq(v.y);
+}
+template<typename T>
+T length(Vector2<T> const& v){
+    return std::sqrt(sqlength(v));
+}
+template<typename T>
+Vector2<T> normalize(Vector2<T> const& v){
+    return v/length(v);
 }
