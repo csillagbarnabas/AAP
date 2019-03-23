@@ -80,5 +80,10 @@ int main(int, char**) {
     cout << "Test of dot function:" << endl;
     comp_sc(dot(A3,B),31.0);
     cout << "Test of normalize function:" << endl;
-    comp_vec(normalize(C),Vector2<double>{3.0/5.0,-4.0/5.0});
+    if (length(A3) < pow(10,-14)){
+        cout << "Error: the length of A is 0." << endl;
+    }
+    else{
+        comp_vec(normalize(C),Vector2<double>{3.0/5.0,-4.0/5.0});
+    }
 }
