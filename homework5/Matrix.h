@@ -29,9 +29,9 @@ inline auto sub = [](auto const& x, auto const& y){ return x - y; };
 
 template<typename T>
 class Matrix{
-    public: 
-		int N;
-    	std::vector<T> data;
+	int N;
+    std::vector<T> data;
+	public: 
     	T&  operator()(int i, int j)
     	{ return data[N*i+j]; }
     	T const& operator()(int i, int j) const
@@ -63,7 +63,7 @@ class Matrix{
 			}
 		}
 	}
-	Matrix( int n, std::vector<T> x ) : N(n), data(x){};
+	Matrix( int n, std::vector<T> const& x ) : N(n), data(x){};
     Matrix<T>& operator+= (Matrix<T> const& cpy)
 	{
 		detail::transform_matrix2(data, cpy.data, data, add);
@@ -86,6 +86,9 @@ class Matrix{
 	}
 	int datasize()const{
 		return static_cast<int>(data.size());
+		}
+	int Nsize()const{
+		return N;
 		}
 	auto begin()
 	{
@@ -110,7 +113,7 @@ class Matrix{
 template<typename T>
 Matrix<T> operator+(Matrix<T> const& A, Matrix<T> const& B)
 {
-	return Matrix<T>(Idx1{}, [&](auto i){ return A[i] + B[i]; },A.N);
+	return Matrix<T>(Idx1{}, [&](auto i){ return A[i] + B[i]; },A.Nsize());
 }
 template<typename T>
 Matrix<T> && operator+( Matrix<T> && m1, Matrix<T> const& m2 )
@@ -134,7 +137,7 @@ Matrix<T> && operator+( Matrix<T> && m1, Matrix<T> && m2 )
 template<typename T>
 Matrix<T> operator-(Matrix<T> const& A, Matrix<T> const& B)
 {
-	return Matrix<T>(Idx1{}, [&](auto i){ return A[i] - B[i]; },A.N);
+	return Matrix<T>(Idx1{}, [&](auto i){ return A[i] - B[i]; },A.Nsize());
 }
 template<typename T>
 Matrix<T> && operator-( Matrix<T> && m1, Matrix<T> const& m2 )
@@ -155,7 +158,7 @@ Matrix<T> && operator-( Matrix<T> && m1, Matrix<T> && m2 )
 	return std::move(m1);
 }
 template<typename T>
-Matrix<T> operator*(Matrix<T> && m, T const& scl)
+Matrix<T>&& operator*(Matrix<T> && m, T const& scl)
 {
 	detail::transform_matrix1(m, m, [=](T const& x){ return x * scl; });
 	return std::move(m);
@@ -163,15 +166,15 @@ Matrix<T> operator*(Matrix<T> && m, T const& scl)
 template<typename T>
 Matrix<T> operator*(Matrix<T> const& A, T const& s)
 {
-	return Matrix<T>(Idx1{}, [&](auto i){ return A[i] * s; },A.N);
+	return Matrix<T>(Idx1{}, [&](auto i){ return A[i] * s; },A.Nsize());
 }
 template<typename T>
 Matrix<T> operator*(T const& s,Matrix<T> const& A)
 {
-	return Matrix<T>(Idx1{}, [&](auto i){ return s * A[i]; },A.N);
+	return Matrix<T>(Idx1{}, [&](auto i){ return s * A[i]; },A.Nsize());
 }
 template<typename T>
-Matrix<T> operator*(T const& scl,Matrix<T> && m)
+Matrix<T>&& operator*(T const& scl,Matrix<T> && m)
 {
 	detail::transform_matrix1(m, m, [=](T const& x){ return scl * x; });
 	return std::move(m);
@@ -179,10 +182,10 @@ Matrix<T> operator*(T const& scl,Matrix<T> && m)
 template<typename T>
 Matrix<T> operator/(Matrix<T> const& A, T const& s)
 {
-	return Matrix<T>(Idx1{}, [&](auto i){ return A[i] / s; },A.N);
+	return Matrix<T>(Idx1{}, [&](auto i){ return A[i] / s; },A.Nsize());
 }
 template<typename T>
-Matrix<T> operator/(Matrix<T> && m, T const& scl)
+Matrix<T>&& operator/(Matrix<T> && m, T const& scl)
 {
 	detail::transform_matrix1(m, m, [=](T const& x){ return x / scl; });
 	return std::move(m);
@@ -190,7 +193,7 @@ Matrix<T> operator/(Matrix<T> && m, T const& scl)
 template<typename T>
 Matrix<T> operator*(Matrix<T> const& A, Matrix<T> const& B)
 {
-	auto N = A.N;
+	auto N = A.Nsize();
 	return Matrix<T>(Idx2{}, [&](int i, int j)
 	{
 	T sum = 0.0;
@@ -199,51 +202,54 @@ Matrix<T> operator*(Matrix<T> const& A, Matrix<T> const& B)
 	}, N);
 }
 template<typename T>
-Matrix<T> operator*(Matrix<T> && A, Matrix<T> const& B)
+Matrix<T>&& operator*(Matrix<T> && A, Matrix<T> const& B)
 {
-	for(int i=0; i<B.N; i++){
-		std::vector<T> v(0);
-		v.resize(A.datasize());
-		for(int j=0; j<B.N; j++){
-			for(int k=0; k<B.N; k++){
-				v[j] += A(i,k) * B(k,j);
+	std::vector<T> v(A.Nsize());
+	for(int i=0; i<B.Nsize(); i++){
+		for(int j=0; j<B.Nsize(); j++){
+			T h = 0.0;
+			for(int k=0; k<B.Nsize(); k++){
+				h += A(i,k) * B(k,j);
 			}
+			v[j] = h;
 		}
-		for(int j=0; j<A.N; j++){
+		for(int j=0; j<A.Nsize(); j++){
 			A(i,j) = v[j];
 		}
 	}
 	return std::move(A);
 }
 template<typename T>
-Matrix<T> operator*(Matrix<T> const& A, Matrix<T> && B)
+Matrix<T>&& operator*(Matrix<T> const& A, Matrix<T> && B)
 {
-	for(int j=0; j<A.N; j++){
-		std::vector<T> v(0);
-		v.resize(A.datasize());
-		for(int i=0; i<A.N; i++){
-			for(int k=0; k<A.N; k++){
-				v[i] += A(j,k) * B(k,i);
+	std::vector<T> v(A.Nsize());
+	for(int j=0; j<A.Nsize(); j++){
+		for(int i=0; i<A.Nsize(); i++){
+			T h = 0.0;
+			for(int k=0; k<A.Nsize(); k++){
+				h += A(j,k) * B(k,i);
 			}
+			v[i] = h;
 		}
-		for(int i=0; i<B.N; i++){
+		for(int i=0; i<B.Nsize(); i++){
 			B(j,i) = v[i];
 		}
 	}
 	return std::move(B);
 }
 template<typename T>
-Matrix<T> operator*(Matrix<T> && A, Matrix<T> && B)
+Matrix<T>&& operator*(Matrix<T> && A, Matrix<T> && B)
 {
-	for(int i=0; i<B.N; i++){
-		std::vector<T> v(0);
-		v.resize(A.datasize());
-		for(int j=0; j<A.N; j++){
-			for(int k=0; k<A.N; k++){
-				v[j] += A(i,k) * B(k,j);
+	std::vector<T> v(A.Nsize());
+	for(int i=0; i<B.Nsize(); i++){
+		for(int j=0; j<A.Nsize(); j++){
+			T h = 0.0;
+			for(int k=0; k<A.Nsize(); k++){
+				h += A(i,k) * B(k,j);
 			}
+			v[j] = h;
 		}
-		for(int j=0; j<A.N; j++){
+		for(int j=0; j<A.Nsize(); j++){
 			A(i,j) = v[j];
 		}
 	}
@@ -252,10 +258,10 @@ Matrix<T> operator*(Matrix<T> && A, Matrix<T> && B)
 template<typename T>
 std::ostream& operator<< (std::ostream& o, Matrix<T> const& m)
 {
-	for(int j = 0; j < m.N; ++j){
-		for(int i=0; i<m.N; ++i)
+	for(int j = 0; j < m.Nsize(); ++j){
+		for(int i=0; i<m.Nsize(); ++i)
 		{
-			o << m.data[j*m.N+i] << "   ";
+			o << m(j,i) << "   ";
 		}
 		o << "\n";
 	}
