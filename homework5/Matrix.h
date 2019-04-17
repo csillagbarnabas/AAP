@@ -5,6 +5,8 @@
 #include <initializer_list>
 #include <cmath>
 #include <ostream>
+#include <istream>
+#include <sstream>
 
 struct Idx1{};
 struct Idx2{};
@@ -40,9 +42,9 @@ class Matrix{
     	{ return data[i]; }
     	T const& operator[](int i) const
     	{ return data[i]; }
-	Matrix() = default;
+	Matrix(): N(0), data(0) {};
 	Matrix( Matrix const& ) = default;
-	Matrix( Matrix && ) = default;
+	Matrix(Matrix&& m) : N{m.N}, data{m.data} {m.N = 0; m.data.resize(0); };
 	Matrix<T>& operator=(Matrix const&) = default;
 	Matrix<T>& operator=(Matrix &&) = default;
 	template<typename F>
@@ -255,15 +257,73 @@ Matrix<T>&& operator*(Matrix<T> && A, Matrix<T> && B)
 	}
 	return std::move(A);
 }
+std::istream& operator>>( std::istream& s, Matrix<int>& A )
+{
+	std::string tmp;
+	for(int j=0; j<A.Nsize(); j++){
+		std::getline(s, tmp);
+		if(tmp.size() > 0)
+		{
+		std::stringstream ss(tmp);
+		for(int k=0; k<A.Nsize(); k++){
+			if(k < A.Nsize()-1){
+				std::getline(ss, tmp, ',');
+				A(j,k) = std::stoi(tmp);
+			}
+			else{
+				std::getline(ss, tmp, '\n');
+				A(j,k) = std::stoi(tmp);
+				}
+			}
+		}
+	}
+	return s;
+}
+std::istream& operator>>( std::istream& s, Matrix<double>& A )
+{
+	std::string tmp;
+	for(int j=0; j<A.Nsize(); j++){
+		std::getline(s, tmp);
+		if(tmp.size() > 0)
+		{
+		std::stringstream ss(tmp);
+		for(int k=0; k<A.Nsize(); k++){
+			if(k < A.Nsize()-1){
+				std::getline(ss, tmp, ',');
+				A(j,k) = std::stod(tmp);
+			}
+			else{
+				std::getline(ss, tmp, '\n');
+				A(j,k) = std::stod(tmp);
+				}
+			}
+		}
+	}
+	return s;
+}
 template<typename T>
 std::ostream& operator<< (std::ostream& o, Matrix<T> const& m)
 {
 	for(int j = 0; j < m.Nsize(); ++j){
 		for(int i=0; i<m.Nsize(); ++i)
 		{
-			o << m(j,i) << "   ";
+			if(m(j,i) >= 0){
+				if(i != m.Nsize()-1){
+					o << " " << m(j,i) << ",";
+				}
+				else{
+					o << " " << m(j,i) << std::endl;
+				}
+			}
+			if(m(j,i) < 0){
+				if(i != m.Nsize()-1){
+					o << m(j,i) << ",";
+				}
+				else{
+					o << m(j,i) << std::endl;
+				}
+			}
 		}
-		o << "\n";
 	}
 	return o;
 }
