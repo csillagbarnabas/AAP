@@ -23,13 +23,15 @@ int main(int, char**) {
 	{
 		Matrix<double> u;
 		if(u.datasize() != 0)         { err("default contructor test [datasize]");           }
+		if(u.Nsize() != 0)         { err("default contructor test [Nsize]");           }
 		if(u.begin() != u.end())  { err("default contructor test [begin == end]");   }
 		if(u.cbegin() != u.cend()){ err("default contructor test [cbegin == cend]"); }
 	}
     //Test list initialization and indexing:
     {
         Matrix<double> a{3,{3.1, -5.2, 9.3,4.2,5.3,6.4,7.5,8.6,9.7}};
-		if(a.datasize() != 9)                            { err("initializer list constructor test [datasize]");             }
+		if(a.datasize() != 9)                            { err("initializer list constructor test [datasize]"); }
+		if(a.Nsize() != 3)                            { err("initializer list constructor test [Nsize]"); }
 		if(a[0] != 3.1 || a[1] != -5.2 || a[2] != 9.3 || a[3] != 4.2 || a[4] != 5.3 || a[5] != 6.4 || a[6] != 7.5 ||
         a[7] != 8.6 || a[8] != 9.7){ err("initializer list constructor test [indexing with []]");   }
 		if(3.1 != a(0,0) || -5.2 != a(0,1) || 9.3 != a(0,2) || 4.2 != a(1,0) || 5.3 != a(1,1) || 6.4 != a(1,2) || 
@@ -75,6 +77,7 @@ int main(int, char**) {
 		if(++ ++ ++ ++ ++ ++ ++ ++ ++(b.cbegin()) != b.cend() )       
         { err("move constructor test [cbegin + 9 == cend]"); }
 		if(a.datasize() != 0)                            { err("move constructor test [src datasize]");           }
+		if(a.Nsize() != 0)                            { err("move constructor test [src Nsize]");           }
         if(a.begin() != a.end())                     { err("move constructor test [src begin == src end]"); }
 	}
     //Test assignment:
@@ -126,10 +129,11 @@ int main(int, char**) {
 		Matrix<double> b{3,{1.1,-2.2,3.3,4.4,5.5,6.6,7.7,8.8,9.9}};
 		Matrix<double> ref{3,{2.0,7.4,6.0,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2}};
 		Matrix<double> res = std::move(a) - b;
-		if(a.datasize() != 0)                              { err("operator- test (r-value, l-value) [src datasize1]");     }
+		if(a.datasize() != 0)                              { err("operator- test (r-value, l-value) [src datasize1]");   }
 		if(b.datasize() != 9)                              { err("operator- test (r-value, l-value) [src datasize2]");     }
 		if(b[0] != 1.1 || b[1] != -2.2 || b[2] != 3.3 || b[3] != 4.4 || b[4] != 5.5 || b[5] != 6.6 || b[6] != 7.7 || 
         b[7] != 8.8 || b[8] != 9.9){ err("operator- test (r-value, l-value) [src elements]"); }
+		if(a.Nsize() != 0)                              { err("operator- test (r-value, l-value) [src Nsize1]");   }
 		if(res.datasize() != 9)                            { err("operator- test (r-value, l-value) [datasize]");         }
 		comp_matrix(ref,res,"operator- test (r-value, l-value)");
 	}
@@ -143,6 +147,7 @@ int main(int, char**) {
 		if(a[0] != -3.1 || a[1] != 5.2 || a[2] != 9.3 || a[3] != 4.2 || a[4] != 5.3 || a[5] != 6.4 || a[6] != 7.5 || 
         a[7] != 8.6 || a[8] != 9.7)  { err("operator- test (l-value, r-value) [src elements]"); }
 		if(b.datasize() != 0)                              { err("operator- test (l-value, r-value) [src datasize2]");     }
+		if(b.Nsize() != 0)                              { err("operator- test (l-value, r-value) [src Nsize2]");     }
 		if(res.datasize() != 9)                            { err("operator- test (l-value, r-value) [datasize]");         }
 		comp_matrix(ref,res,"operator- test (l-value, r-value)");
 	}
@@ -152,9 +157,10 @@ int main(int, char**) {
 		Matrix<double> b{3,{1.1,2.2,3.3,-4.4,5.5,6.6,7.7,8.8,9.9}};
 		Matrix<double> ref{3,{2.0,3.0,6.0,8.6,-0.2,-0.2,-0.2,-0.2,-0.2}};
 		Matrix<double> res = std::move(a) - std::move(b);
-		if(a.datasize() != 0)                              { err("operator- test (r-value, r-value) [src datasize1]");     }
-		if(b.datasize() != 9)                              { err("operator- test (r-value, r-value) [src datasize2]");     }
-		if(res.datasize() != 9)                            { err("operator- test (r-value, r-value) [datasize]");         }
+		if(a.Nsize() != 0)                              { err("operator- test (r-value, r-value) [src Nsize1]");	}
+		if(a.datasize() != 0)                              { err("operator- test (r-value, r-value) [src datasize1]"); }
+		if(b.datasize() != 9)                              { err("operator- test (r-value, r-value) [src datasize2]"); }
+		if(res.datasize() != 9)                            { err("operator- test (r-value, r-value) [datasize]");      }
 		comp_matrix(ref,res,"operator- test (r-value, r-value)");
 	}
 	//Test operator+ (l-value, l-value)
@@ -179,6 +185,7 @@ int main(int, char**) {
 		Matrix<double> ref{3,{4.2,7.4,12.6,8.6,10.8,13.0,15.2,0.2,19.6}};
 		Matrix<double> res = std::move(a) + b;
 		if(a.datasize() != 0)                              { err("operator+ test (r-value, l-value) [src datasize1]");     }
+		if(a.Nsize() != 0)                              { err("operator+ test (r-value, l-value) [src Nsize1]");     }
 		if(b.datasize() != 9)                              { err("operator+ test (r-value, l-value) [src datasize2]");     }
 		if(b[0] != 1.1 || b[1] != 2.2 || b[2] != 3.3 || b[3] != 4.4 || b[4] != 5.5 || b[5] != 6.6 || b[6] != 7.7 || 
         b[7] != 8.8 || b[8] != 9.9){ err("operator+ test (r-value, l-value) [src elements]"); }
@@ -195,6 +202,7 @@ int main(int, char**) {
 		if(a[0] != -3.1 || a[1] != 5.2 || a[2] != 9.3 || a[3] != 4.2 || a[4] != 5.3 || a[5] != 6.4 || a[6] != 7.5 || 
         a[7] != 8.6 || a[8] != 9.7)  { err("operator+ test (l-value, r-value) [src elements]"); }
 		if(b.datasize() != 0)                              { err("operator+ test (l-value, r-value) [src datasize2]");     }
+		if(b.Nsize() != 0)                              { err("operator+ test (l-value, r-value) [src Nsize2]");     }
 		if(res.datasize() != 9)                            { err("operator+ test (l-value, r-value) [datasize]");         }
 		comp_matrix(ref,res,"operator+ test (l-value, r-value)");
 	}
@@ -205,6 +213,7 @@ int main(int, char**) {
 		Matrix<double> ref{3,{4.2,-3.0,12.6,8.6,10.8,13.0,15.2,17.4,19.6}};
 		Matrix<double> res = std::move(a) + std::move(b);
 		if(a.datasize() != 0)                              { err("operator+ test (r-value, r-value) [src datasize1]");     }
+		if(a.Nsize() != 0)                              { err("operator+ test (r-value, r-value) [src Nsize1]");     }
 		if(b.datasize() != 9)                              { err("operator+ test (r-value, r-value) [src datasize2]");     }
 		if(res.datasize() != 9)                            { err("operator+ test (r-value, r-value) [datasize]");         }
 		comp_matrix(ref,res,"operator+ test (r-value, r-value)");
@@ -256,7 +265,7 @@ int main(int, char**) {
 		Matrix<double> ref{3,{6.2,10.4,18.6,8.4,10.6,12.8,15.0,-17.2,19.4}};
 		Matrix<double> res{3,{}};
 		res = std::move(a) * 2.0;
-		if(a.datasize() != 0)                              { err("operator* test (r-value, scalar) [src datasize]");	}	
+		if(a.datasize() != 0)                              { err("operator* test (r-value, scalar) [src datasize]");	}
 		if(res.datasize() != 9)                            { err("operator* (r-value, scalar) test [datasize]");         }
 		comp_matrix(ref,res,"operator* (r-value, scalar) test");
 	}
@@ -320,6 +329,7 @@ int main(int, char**) {
 		Matrix<double> ref{3,{97.9,117.26,136.62,77.22,94.71,112.2,120.78,149.16,177.54}};
 		Matrix<double> res = std::move(a) * b;
 		if(a.datasize() != 0)                              { err("operator* test (r-value, l-value) [src datasize1]");	}
+		if(a.Nsize() != 0)                              { err("operator* test (r-value, l-value) [src Nsize1]");	}
 		if(b.datasize() != 9)                              { err("operator+ test (r-value, l-value) [src datasize2]");     }
 		if(b[0] != 1.1 || b[1] != 2.2 || b[2] != 3.3 || b[3] != 4.4 || b[4] != 5.5 || b[5] != 6.6 || b[6] != 7.7 || 
         b[7] != 8.8 || b[8] != 9.9){ err("operator* test (r-value, l-value) [src elements]"); }
@@ -334,6 +344,7 @@ int main(int, char**) {
 		Matrix<double> res = a * std::move(b);
 		if(a.datasize() != 9)                              { err("operator* test (l-value, r-value) [src datasize1]");    }
 		if(b.datasize() != 0)                              { err("operator* test (l-value, r-value) [src datasize2]");	}
+		if(b.Nsize() != 0)                              { err("operator* test (l-value, r-value) [src Nsize2]");	}
 		if(a[0] != 3.1 || a[1] != 5.2 || a[2] != 9.3 || a[3] != 4.2 || a[4] != 5.3 || a[5] != 6.4 || a[6] != 7.5 || 
         a[7] != 8.6 || a[8] != 9.7)  { err("operator* test (l-value, l-value) [src elements]"); }
 		if(res.datasize() != 9)                            { err("operator* test (l-value, r-value) [datasize]");         }
@@ -346,6 +357,7 @@ int main(int, char**) {
 		Matrix<double> ref{3,{97.9,117.26,136.62,77.22,94.71,112.2,120.78,149.16,177.54}};
 		Matrix<double> res = std::move(a) * std::move(b);
 		if(a.datasize() != 0)                              { err("operator* test (r-value, r-value) [src datasize1]");    }
+		if(a.Nsize() != 0)                              { err("operator* test (r-value, r-value) [src Nsize1]");    }
 		if(res.datasize() != 9)                            { err("operator* test (r-value, r-value) [datasize]");         }
 		comp_matrix(ref,res,"operator* test (r-value, r-value)");
 	}
