@@ -1,6 +1,6 @@
 #include <iostream>
-#include "Matrix.h"
-#include "vector2.h"
+#include "..\headers\Matrix.h"
+#include "..\headers\vector2.h"
 #include <fstream>
 #include <vector>
 #include <numeric>
