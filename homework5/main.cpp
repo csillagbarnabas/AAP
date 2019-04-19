@@ -266,6 +266,7 @@ int main(int, char**) {
 		Matrix<double> res{3,{}};
 		res = std::move(a) * 2.0;
 		if(a.datasize() != 0)                              { err("operator* test (r-value, scalar) [src datasize]");	}
+		if(a.Nsize() != 0)                              { err("operator* test (r-value, scalar) [src Nsize]");	}
 		if(res.datasize() != 9)                            { err("operator* (r-value, scalar) test [datasize]");         }
 		comp_matrix(ref,res,"operator* (r-value, scalar) test");
 	}
@@ -285,6 +286,7 @@ int main(int, char**) {
 		Matrix<double> res{3,{}};
 		res = 2.0 * std::move(a);
 		if(a.datasize() != 0)                              { err("operator* test (scalar, r-value) [src datasize]");	}
+		if(a.Nsize() != 0)                              { err("operator* test (scalar, r-value) [src Nsize]");	}
 		if(res.datasize() != 9)                            { err("operator* (scalar, r-value) test [datasize]");         }
 		comp_matrix(ref,res,"operator* (scalar, r-value) test");
 	}
@@ -304,6 +306,7 @@ int main(int, char**) {
 		Matrix<double> res{3,{}};
 		res = std::move(a) / 2.0;
 		if(a.datasize() != 0)                              { err("operator/ test (r-value, scalar) [src datasize]");     }
+		if(a.Nsize() != 0)                              { err("operator/ test (r-value, scalar) [src Nsize]");     }
 		if(res.datasize() != 9)                            { err("operator/ (r-value, scalar) test [datasize]");         }
 		comp_matrix(ref,res,"operator/ (r-value, scalar) test");
 	}
