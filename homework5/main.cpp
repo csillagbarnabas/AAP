@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Matrix.h"
+#include "..\headers\Matrix.h"
 template<typename T, typename F, typename G>
 void comp_matrix(Matrix<T> const& A, Matrix<F> const& B, G str){
 	if(A.Nsize() != B.Nsize()){
