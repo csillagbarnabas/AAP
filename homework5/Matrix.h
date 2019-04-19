@@ -46,7 +46,7 @@ class Matrix{
 	Matrix( Matrix const& ) = default;
 	Matrix(Matrix&& m) : N{m.N}, data{m.data} {m.N = 0; m.data.resize(0); };
 	Matrix<T>& operator=(Matrix const&) = default;
-	Matrix<T>& operator=(Matrix &&) = default;
+	Matrix<T>& operator=(Matrix && m){N=m.N; data=m.data; m.N = 0; m.data.resize(0); return *this;}
 	template<typename F>
 	Matrix(Idx1, F f,int M){
 		data.resize(M*M);
