@@ -9,7 +9,7 @@ auto err = [](auto str){ std::cout << "Time measurement error: " << str << "\n";
 auto randomvek = [](int i){
     std::mt19937 gen(42);
     std::normal_distribution<double> distr(0,1);
-    return Matrix<double>(Idx1{}, [&](auto j){return distr(gen);}, i);
+    return Matrix<double>(Idx1{}, [&](auto){return distr(gen);}, i);
 
 };
 
