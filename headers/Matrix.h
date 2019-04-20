@@ -43,9 +43,20 @@ class Matrix{
     	{ return data[i]; }
 	Matrix(): N(0), data(0) {};
 	Matrix( Matrix const& ) = default;
-	Matrix(Matrix&& m) : N{m.N}, data{m.data} {m.N = 0; m.data.resize(0); };
+	Matrix(Matrix&& m) : N{m.N}, data{std::move(m.data)} {m.N = 0;  };  
 	Matrix<T>& operator=(Matrix const&) = default;
-	Matrix<T>& operator=(Matrix && m){N=m.N; data=m.data; m.N = 0; m.data.resize(0); return *this;}
+	Matrix<T>& operator=(Matrix && m){
+		if(N==m.N and data==m.data){
+			data=std::move(m.data);
+			return *this;
+		}
+		else{
+			N=m.N;
+			data=std::move(m.data);
+			m.N = 0; 
+			return *this;
+		}
+	}
 	template<typename F>
 	Matrix(Idx1, F f,int M){
 		data.resize(M*M);
