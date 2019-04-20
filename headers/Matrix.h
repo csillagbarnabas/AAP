@@ -46,8 +46,7 @@ class Matrix{
 	Matrix(Matrix&& m) : N{m.N}, data{std::move(m.data)} {m.N = 0;  };  
 	Matrix<T>& operator=(Matrix const&) = default;
 	Matrix<T>& operator=(Matrix && m){
-		if(N==m.N and data==m.data){
-			data=std::move(m.data);
+		if(&data == &m.data){
 			return *this;
 		}
 		else{
