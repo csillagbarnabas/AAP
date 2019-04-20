@@ -121,6 +121,17 @@ int main(int, char**) {
 		if(a.datasize() != 0)                            { err("move assignment test [src datasize]");           }
 		if(a.Nsize() != 0)                            { err("move assignment test [src N size]");           }
 	}
+    //Test self move assignment:
+    {
+	Matrix<double> a{3,{3.1, 5.2, 9.3,4.2,5.3,6.4,7.5,8.6,-9.7}};
+	a = std::move(a);
+	if(a.datasize() != 9)                            { err("self move assignment test [src datasize]");           }
+	if(a.Nsize() != 3)                            { err("self move assignment test [src N size]");           }
+	if(a[0] != 3.1 || a[1] != 5.2 || a[2] != 9.3 || a[3] != 4.2 || a[4] != 5.3 || a[5] != 6.4 || a[6] != 7.5 || 
+        a[7] != 8.6 || a[8] != -9.7){ err("self move assignment test [src elements]");       }
+        if(3.1 != a(0,0) || 5.2 != a(0,1) || 9.3 != a(0,2) || 4.2 != a(1,0) || 5.3 != a(1,1) || 6.4 != a(1,2) || 
+        7.5 != a(2,0) || 8.6 != a(2,1) || -9.7 != a(2,2)){ err("self move assignment test (src elements)");   }
+	}
     //Test operator- (l-value, l-value)
 	{
 		Matrix<double> a{3,{3.1, 5.2, 9.3,4.2,5.3,6.4,7.5,8.6,-9.7}};
