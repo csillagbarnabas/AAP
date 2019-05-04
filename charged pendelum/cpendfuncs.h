@@ -7,20 +7,13 @@
 #include <list>
 template<typename T>
 auto changedp(Vector3<T> const& r){//x,y,z
-    if(sqrt(sq(r.x)+sq(r.y)+sq(r.z)) < 1e-14){
-        return Vector3<T>{0.0,0.0,0.0};
-    }
-    if(r.x < 1e-14){
-        return Vector3<T>{sqrt(sq(r.x)+sq(r.y)+sq(r.z)),acos(r.z/sqrt(sq(r.x)+sq(r.y)+sq(r.z))),1.57079633};
-    }
-    else{
-        return Vector3<T>{sqrt(sq(r.x)+sq(r.y)+sq(r.z)),acos(r.z/sqrt(sq(r.x)+sq(r.y)+sq(r.z))),atan(r.y/r.x)};
-    }
-    //r,phi,theta
+    auto R = sqrt(sq(r.x)+sq(r.y)+sq(r.z));
+    return Vector3<T>{R,acos(r.z/R),atan2(r.y,r.x)};
 }
 template<typename T>
 auto changepd(Vector3<T> const& r){//r,phi,theta
-    return Vector3<T>{r.x*sin(r.y)*cos(r.z),r.x*sin(r.y)*sin(r.z),r.x*cos(r.y)};//x,y,z
+    auto sy = sin(r.y);
+    return Vector3<T>{r.x*sy*cos(r.z),r.x*sy*sin(r.z),r.x*cos(r.y)};//x,y,z
 }
 template<typename T>
 auto dcomponentssumphi(Vector3<T> const& r1, Vector3<T> const& r2){
@@ -54,14 +47,14 @@ auto cpendcasumtheta(std::vector<T> const& q,std::vector<Vector3<F>> const& rq, 
     }
     return sum;
 }
-//polár vektorok jöjjenek be!
 template<typename State, typename C, typename kg, typename M>
 auto cpenda( Vector3<State> const& r, Vector3<State> const& v, std::vector<Vector3<double>> const& rq, C const& q0,
 std::vector<C> const& q,kg const& m, M const& l){
     Vector3<State> rd{changepd(r)};
-    return Vector3<State>{(State)0,sin(r.y)*cos(r.y)*sq(v.z)+9.81*sin(r.y)/l - cpendcasumphi(q,rq,rd,q0)
-    *(cos(r.y)*cos(r.z)+cos(r.y)*sin(r.z)-sin(r.y))/(m*l),-2*cos(r.y)*sq(r.z)/sin(r.y)-cpendcasumtheta(q,rq,rd,q0)
-    *(sin(r.z)-cos(r.z))/(m*l*sin(r.y))};
+    auto sy = sin(r.y); auto cy = cos(r.y); auto cz = cos(r.z); auto sz = sin(r.z);
+    return Vector3<State>{(State)0,//9.81 is the gravitational acceleration in Hungary
+    sy*cy*sq(v.z)+(double)9.81*sy/l - cpendcasumphi(q,rq,rd,q0)*(cy*cz+cy*sz-sy)/(m*l),
+    -2*cy*sq(r.z)/sy-cpendcasumtheta(q,rq,rd,q0)*(sz-cz)/(m*l*sy)};
 }
 template<typename State, typename T, typename C, typename kg, typename M>
 void cpendsolve_rk4(Vector3<State> const& r0,Vector3<State> const& v0, std::vector<Vector3<double>> const& rq,
