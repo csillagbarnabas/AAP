@@ -8,16 +8,16 @@
 #include <cmath>
 #include <chrono>
 #include <fstream>
+#include <string>
 
 template<typename T>
 T sq(T a){
     return a*a;
 }
-
-auto err = [](auto str){ std::cout << "Time measurement error: " << str << "\n"; std::exit(-1); };
-
+auto err = [](auto str){ std::cout << "Measurement error: " << str << std::endl; std::exit(-1); };
 auto lregression(std::vector<double> const& x, std::vector<double> const& y){
     const int n = static_cast<int>(x.size());
+    auto division = [n](auto x){ return x/n; };
     const auto xv0 = std::accumulate(x.begin(), x.end(), 0.0);
     const auto yv0 = std::accumulate(y.begin(), y.end(), 0.0);
     const auto xv = xv0 / n;
@@ -60,114 +60,92 @@ auto par_regression(std::vector<double> const& x, std::vector<double> const& y){
     const auto b = yv - m * xv;
     return std::array<double, 2> {b,m};
 }
-double t_m_lp_step(int j){
-    double m0 = 0.0560, b0 = -4.20, sigma = 0.3140;
-    std::mt19937 gen(42);
-    std::vector<double> x(10000*j);
-    std::vector<double> y(10000*j);
-    for(int i=0; i<10000*j; ++i){
+template<typename M, typename G, typename L,typename N>
+auto t_m_step(int const& j,M const& m0,L const& b0,N const& sigma, G & gen,int S){
+    std::vector<double> x(40000*j);
+    std::vector<double> y(40000*j);
+    for(int i=0; i<40000*j; ++i){
         std::normal_distribution<double> distr(m0*i*0.001+b0,sigma);
         x[i] = i*0.001;
         y[i] = distr(gen);
     }
-    auto t1 = std::chrono::high_resolution_clock::now();
-    const auto p = par_regression(x,y);
-    auto t2 = std::chrono::high_resolution_clock::now();
-    return (static_cast<std::chrono::duration<double, std::micro>>(t2-t1)).count();
-}
-double t_m_l_step(int j){
-    double m0 = 0.0560, b0 = -4.20, sigma = 0.3140;
-    std::mt19937 gen(42);
-    std::vector<double> x(10000*j);
-    std::vector<double> y(10000*j);
-    for(int i=0; i<10000*j; ++i){
-        std::normal_distribution<double> distr(m0*i*0.001+b0,sigma);
-        x[i] = i*0.001;
-        y[i] = distr(gen);
+    std::chrono::steady_clock::time_point t1;
+    std::chrono::steady_clock::time_point t2;
+    std::array<double, 2> p;
+    t1 = std::chrono::high_resolution_clock::now();
+    if(S == 0){
+        t1 = std::chrono::high_resolution_clock::now();
+        p = lregression(x,y);
+        t2 = std::chrono::high_resolution_clock::now();
     }
-    auto t1 = std::chrono::high_resolution_clock::now();
-    const auto p = lregression(x,y);
-    auto t2 = std::chrono::high_resolution_clock::now();
-    return (static_cast<std::chrono::duration<double, std::micro>>(t2-t1)).count();
-}
-auto t_m_l_step_test(int j){
-    double m0 = 0.0560, b0 = -4.20, sigma = 0.3140;
-    std::mt19937 gen(42);
-    std::vector<double> x(10000*j);
-    std::vector<double> y(10000*j);
-    for(int i=0; i<10000*j; ++i){
-        std::normal_distribution<double> distr(m0*i*0.001+b0,sigma);
-        x[i] = i*0.001;
-        y[i] = distr(gen);
+    if(S == 1){
+        t1 = std::chrono::high_resolution_clock::now();
+        p = par_regression(x,y);
+        t2 = std::chrono::high_resolution_clock::now();
     }
-    auto t1 = std::chrono::high_resolution_clock::now();
-    const auto p = lregression(x,y);
-    auto t2 = std::chrono::high_resolution_clock::now();
-    return p;
+    std::array<double, 3> Pt;
+    Pt[0] = p[0];
+    Pt[1] = p[1];
+    Pt[2] = (static_cast<std::chrono::duration<double, std::micro>>(t2-t1)).count();
+    return Pt;
 }
-auto t_m_lp_step_test(int j){
-    double m0 = 0.0560, b0 = -4.20, sigma = 0.3140;
-    std::mt19937 gen(42);
-    std::vector<double> x(10000*j);
-    std::vector<double> y(10000*j);
-    for(int i=0; i<10000*j; ++i){
-        std::normal_distribution<double> distr(m0*i*0.001+b0,sigma);
-        x[i] = i*0.001;
-        y[i] = distr(gen);
-    }
-    auto t1 = std::chrono::high_resolution_clock::now();
-    const auto p = par_regression(x,y);
-    auto t2 = std::chrono::high_resolution_clock::now();
-    return p;
-}
-void time_measurement_sequence(int const& M, int const& F, std::ofstream& ofile1,std::ofstream& ofile2){
+template<typename T, typename G, typename L,typename N>
+void time_measurement_sequence(int const& M, int const& F, std::ofstream& ofile1,std::ofstream& ofile2,
+std::ofstream& ofile3,std::ofstream& ofile4,T const& m0,L const& b0,N const& sigma, G & gen){
     if( M < 2)                              { err("upper limit.");   }
     if( F < 1)                              { err("the sampling is too small.");   }
-    for(int i = 1; i < M; ++i){
-        std::vector<double> w(F);
+    std::vector<double> w3(F);
+    for(int i = 1; i < M+1; ++i){
         for(int j = 0; j < F; ++j){
-            w[j] = t_m_l_step(i);
+            const auto pt = t_m_step(i,m0,b0,sigma,gen,0);
+            w3[j] = pt[2];
+            ofile3 << pt[0] << std::endl;
+            ofile3 << pt[1] << std::endl;
         }
-        ofile1 << *min_element(w.begin(), w.end()) << ",";
+        ofile1 << *min_element(w3.begin(), w3.end()) << ",";
     }
-    for(int i = 1; i < M; ++i){
-        std::vector<double> w(F);
+    for(int i = 1; i < M+1; ++i){
         for(int j = 0; j < F; ++j){
-            w[j] = t_m_lp_step(i);
+            const auto pt = t_m_step(i,m0,b0,sigma,gen,1);
+            w3[j] = pt[2];
+            ofile4 << pt[0] << std::endl;
+            ofile4 << pt[1] << std::endl;
         }
-        ofile2 << *min_element(w.begin(), w.end()) << ",";
+        ofile2 << *min_element(w3.begin(), w3.end()) << ",";
     }
 }
 int main(){
-    int M = 100;
+    double m0 = 0.0560, b0 = -4.20, sigma = 0.03140;
+    std::mt19937 gen(42);
+    int M = 2;
     int F = 10;
-    double ml = t_m_l_step_test(M)[1];
-    double bl = t_m_l_step_test(M)[0];
-    if(std::fabs(bl +4.2) > 10.0){
-        std::cout << "The difference between the bl-s more than 0.1!" << std::endl;
-        std::cout << ml << std::endl;
-        exit(-1);
-    }
-    if(std::fabs(ml - 0.0560) > 0.1){
-        std::cout << "The difference between the ml-s more than 0.01!" << std::endl;
-        std::cout << ml << std::endl;
-        exit(-1);
-    }
-    double mlp = t_m_lp_step_test(M)[1];
-    double blp = t_m_lp_step_test(M)[0];
-    if(std::fabs(blp +4.2) > 10.0){
-        std::cout << "The difference between the bl-s more than 0.1!" << std::endl;
-        std::cout << mlp << std::endl;
-    }
-    if(std::fabs(mlp - 0.0560) > 0.1){
-        std::cout << "The difference between the ml-s more than 0.01!" << std::endl;
-        std::cout << mlp << std::endl;
-    }
+    double bt = 1.0;
+    double mt = 0.0560;
+    std::array<double, 3> Pl = t_m_step(M,m0,b0,sigma,gen,0);
+    std::array<double, 3> Plp = t_m_step(M,m0,b0,sigma,gen,1);
+    if(std::fabs(Pl[0] -b0) > bt){ err("bl");}
+    if(std::fabs(Pl[1] -m0) > mt){ err("ml");}
+    if(std::fabs(Plp[0] -b0) > bt){ err("blp");}
+    if(std::fabs(Plp[1] -m0) > mt){ err("mlp");}
     std::ofstream ofile1("simple.txt");
     if(ofile1.is_open()){
         std::ofstream ofile2("parallel.txt");
         if(ofile2.is_open()){
-            time_measurement_sequence(M,F,ofile1,ofile2);
+            std::ofstream ofile3("simple_solutions.txt");
+            if(ofile3.is_open()){
+                 std::ofstream ofile4("parallel_solutions.txt");
+                if(ofile4.is_open()){
+                    time_measurement_sequence(M,F,ofile1,ofile2,ofile3,ofile4,m0,b0,sigma,gen);
+                    ofile4.close();
+                }
+                else{
+                    std::cout << "Unable to open file" << std::endl;
+                }
+                ofile3.close();
+            }
+            else{
+                std::cout << "Unable to open file" << std::endl;
+            }
         ofile2.close();
         }
         else{
